@@ -1,80 +1,89 @@
-// Configuration
-const width = 928;
-const height = 500;
 const margin = { top: 40, right: 30, bottom: 60, left: 80 };
+const width = 450;
+const height = 400;
 
-const svg = d3.select("#chart-area")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto; font-family: sans-serif; overflow: visible;");
+function createChart(containerId, label, color) {
+    const svg = d3.select(containerId)
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .style("overflow", "visible");
 
-// Scales
-const x = d3.scaleUtc().range([margin.left, width - margin.right]);
-const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
+    const x = d3.scaleUtc().range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 
-// Axis Groups
-const gX = svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`);
-const gY = svg.append("g").attr("transform", `translate(${margin.left},0)`);
+    const gX = svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`);
+    const gY = svg.append("g").attr("transform", `translate(${margin.left},0)`);
 
-// --- LABELS ---
-// X-Axis Label
-svg.append("text")
-    .attr("text-anchor", "middle")
-    .attr("x", margin.left + (width - margin.left - margin.right) / 2)
-    .attr("y", height - 15)
-    .attr("fill", "currentColor")
-    .style("font-size", "14px")
-    .text("Time (UTC)");
+    const path = svg.append("path").attr("fill", "none").attr("stroke", color).attr("stroke-width", 2);
 
-// Y-Axis Label
-svg.append("text")
-    .attr("text-anchor", "middle")
-    .attr("transform", `translate(30, ${margin.top + (height - margin.top - margin.bottom) / 2}) rotate(-90)`)
-    .attr("fill", "currentColor")
-    .style("font-size", "14px")
-    .text("Memory Usage (KB)");
+    svg.append("text").attr("x", margin.left + (width-margin.left-margin.right)/2).attr("y", height-15).attr("text-anchor", "middle").text("Time (UTC)");
+    svg.append("text").attr("transform", `translate(25, ${height/2}) rotate(-90)`).attr("text-anchor", "middle").style("font-weight", "bold").text(label);
 
-// Path element (no clip-path needed if not sliding)
-const path = svg.append("path")
-    .attr("fill", "none")
-    .attr("stroke", "steelblue")
-    .attr("stroke-width", 2);
+    const tooltip = svg.append("g").style("display", "none");
+    tooltip.append("line").attr("stroke", "#ccc").attr("stroke-dasharray", "3,3").attr("y1", margin.top).attr("y2", height - margin.bottom);
+    tooltip.append("circle").attr("r", 4).attr("fill", color).attr("stroke", "white").attr("stroke-width", 2);
+    const tooltipText = tooltip.append("text").attr("font-size", "10px").attr("y", -10);
 
-const line = d3.line()
-    .x(d => x(d.date))
-    .y(d => y(d.value));
+    let currentData = [];
 
-async function update() {
+    return {
+        svgNode: svg.node(),
+        xScale: x,
+        update: function(data, key) {
+            currentData = data.map(d => ({
+                date: new Date(d.epoch_ms),
+                value: +d[key]
+            })).sort((a, b) => a.date - b.date);
+
+            x.domain(d3.extent(currentData, d => d.date));
+            y.domain([0, d3.max(currentData, d => d.value)]).nice();
+
+            gX.call(d3.axisBottom(x).ticks(5));
+            gY.call(d3.axisLeft(y).ticks(8, ",f"));
+            path.datum(currentData).attr("d", d3.line().x(d => x(d.date)).y(d => y(d.value)));
+        },
+        showTooltip: function(targetDate) {
+            if (!currentData.length) return;
+
+            const bisect = d3.bisector(d => d.date).left;
+            const i = bisect(currentData, targetDate, 1);
+            const d0 = currentData[i - 1];
+            const d1 = currentData[i];
+            if (!d0 || !d1) return;
+            const d = targetDate - d0.date > d1.date - targetDate ? d1 : d0;
+
+            tooltip.style("display", null);
+            tooltip.attr("transform", `translate(${x(d.date)}, ${y(d.value)})`);
+
+            const timeFormat = d3.timeFormat("%H:%M:%S");
+            tooltipText.text(`${timeFormat(d.date)} | ${d.value.toLocaleString()} KB`)
+                       .attr("text-anchor", x(d.date) > width / 2 ? "end" : "start")
+                       .attr("dx", x(d.date) > width / 2 ? -10 : 10);
+        },
+        hideTooltip: () => tooltip.style("display", "none")
+    };
+}
+
+const rssChart = createChart("#rss-chart", "RSS Anon (KB)", "steelblue");
+const vmChart = createChart("#vm-chart", "VM Size (KB)", "orange");
+const charts = [rssChart, vmChart];
+
+async function fetchAndUpdate() {
     try {
         const response = await fetch('http://localhost:3000/memory');
         const result = await response.json();
-
-        const data = result.data.map(d => ({
-            date: new Date(d.epoch_ms),
-            value: +d.RssAnonKB
-        })).sort((a, b) => a.date - b.date);
-
-        // Update domains
-        x.domain(d3.extent(data, d => d.date));
-        y.domain([0, d3.max(data, d => d.value)]).nice();
-
-        // Update Axes (Instant or quick snap)
-        gX.call(d3.axisBottom(x));
-        gY.call(d3.axisLeft(y).ticks(8, ",f"));
-
-        // Update Path - remove .transition() for an instant jump
-        path.datum(data)
-            .attr("d", line);
-
-    } catch (error) {
-        console.error("Update error:", error);
-    }
+        rssChart.update(result.data, "RssAnonKB");
+        vmChart.update(result.data, "VmSizeKB");
+    } catch (e) { console.error(e); }
 }
 
-// Initial fetch
-update();
+d3.selectAll("#rss-chart, #vm-chart").on("mousemove", function(event) {
+    const mouseX = d3.pointer(event, rssChart.svgNode)[0];
+    const targetDate = rssChart.xScale.invert(mouseX);
+    charts.forEach(c => c.showTooltip(targetDate));
+}).on("mouseleave", () => charts.forEach(c => c.hideTooltip()));
 
-// Update at once every 5 seconds (not continuous)
-setInterval(update, 5000);
+setInterval(fetchAndUpdate, 5000);
+fetchAndUpdate();
