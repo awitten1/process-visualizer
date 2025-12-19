@@ -74,8 +74,8 @@ async function fetchAndUpdate() {
     try {
         const response = await fetch('http://localhost:3000/memory');
         const result = await response.json();
-        rssChart.update(result.data, "RssAnonKB");
-        vmChart.update(result.data, "VmSizeKB");
+        rssChart.update(result.data, "rss_anon_kb");
+        vmChart.update(result.data, "vm_size_kb");
     } catch (e) { console.error(e); }
 }
 

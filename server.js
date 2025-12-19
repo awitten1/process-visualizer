@@ -27,7 +27,6 @@ data.watch_process_and_store_data(npid)
 
 app.get('/memory',async (req,res) => {
   const metrics = await data.get_metrics(npid)
-  console.log(metrics)
   res.send({data: metrics})
 });
 
