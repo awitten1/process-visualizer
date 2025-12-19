@@ -1,5 +1,6 @@
 import express from 'express';
 import * as data from './src/store_data.js';
+import { readlink } from 'node:fs/promises';
 
 const app = express();
 const PORT = 3000;
@@ -16,9 +17,19 @@ app.post('/api/calculate', (req, res) => {
     res.json({ result: sum });
 });
 
-const pid = 'self';
+let pid = 'self';
+if (pid === 'self') {
+  pid = await readlink('/proc/self')
+}
+const npid = parseInt(pid)
 
-data.watch_process_and_store_data(pid)
+data.watch_process_and_store_data(npid)
+
+app.get('/memory',async (req,res) => {
+  const metrics = await data.get_metrics(npid)
+  console.log(metrics)
+  res.send({data: metrics})
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

@@ -12,6 +12,10 @@ const total_width = 400;
     .attr("width", total_height)
     .attr("height", total_width);
 
+  const d = (await (await fetch('http://localhost:3000/memory')).json())
+    .data
+    .forEach(d => console.log(d.epoch_ms))
+  console.log(d)
   const data = await d3.json("data/buildings.json")
 
   const scale = d3.scaleLinear()
