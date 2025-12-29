@@ -1,24 +1,30 @@
 {
   "name": "process-visualizer",
   "version": "1.0.0",
-  "description": "",
-  "homepage": "https://github.com/awitten1/process-visualizer#readme",
-  "bugs": {
-    "url": "https://github.com/awitten1/process-visualizer/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/awitten1/process-visualizer.git"
-  },
-  "license": "ISC",
-  "author": "",
+  "private": true,
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rsbuild build",
+    "dev": "rsbuild dev --open",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "preview": "rsbuild preview"
   },
   "dependencies": {
     "@duckdb/node-api": "^1.4.3-r.1",
-    "express": "^5.2.1"
+    "d3": "^7.9.0",
+    "express": "^5.2.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@rsbuild/core": "^1.6.14",
+    "@rsbuild/plugin-react": "^1.4.2",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.3"
   }
 }

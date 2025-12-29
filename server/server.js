@@ -6,15 +6,15 @@ const app = express();
 const PORT = 3000;
 
 // Serve static files (HTML, CSS, JS)
-app.use(express.static('public'));
+app.use(express.static('dist'));
 
 // Parse JSON bodies
 app.use(express.json());
 
 app.post('/api/calculate', (req, res) => {
-    const { numbers } = req.body;
-    const sum = numbers.reduce((a, b) => a + b, 0);
-    res.json({ result: sum });
+  const { numbers } = req.body;
+  const sum = numbers.reduce((a, b) => a + b, 0);
+  res.json({ result: sum });
 });
 
 let pid = 'self';
@@ -25,11 +25,12 @@ const npid = parseInt(pid)
 
 data.watch_process_and_store_data(npid)
 
-app.get('/memory',async (req,res) => {
-  const metrics = await data.get_metrics(npid)
-  res.send({data: metrics})
+app.get('/memory', async (req, res) => {
+  const { start, end } = req.query;
+  const metrics = await data.get_metrics(npid, start, end);
+  res.send({ data: metrics });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

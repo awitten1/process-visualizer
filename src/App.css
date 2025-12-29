@@ -1,0 +1,115 @@
+body {
+  margin: 0;
+  color: #fff;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  background-color: #696a6b;
+}
+
+.content {
+  display: flex;
+  min-height: 100vh;
+  line-height: 1.1;
+  text-align: center;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.controls {
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1.5rem;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 600;
+}
+
+.graphs-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  padding: 0 2rem;
+}
+
+.graphs-container > div {
+  width: 100%;
+}
+
+.graphs-container svg {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.graphs-container svg text {
+  fill: #333;
+}
+
+.graphs-container svg .domain,
+.graphs-container svg .tick line {
+  stroke: #333;
+}
+
+.grid line {
+  stroke: #333;
+  stroke-opacity: 0.3;
+  stroke-dasharray: 3, 3;
+}
+
+.grid path {
+  stroke-width: 0;
+}
+
+.pause-btn {
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pause-btn:hover {
+  background-color: #0056b3;
+}
+
+.pause-btn:active {
+  transform: scale(0.98);
+}
+
+.pause-btn.paused {
+  background-color: #28a745;
+}
+
+.pause-btn.paused:hover {
+  background-color: #218838;
+}
+
+.content h1 {
+  font-size: 3.6rem;
+  font-weight: 700;
+}
+
+.content p {
+  font-size: 1.2rem;
+  font-weight: 400;
+  opacity: 0.5;
+}
